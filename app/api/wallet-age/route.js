@@ -56,6 +56,23 @@ export async function POST(request) {
         const endTime = performance.now();
         const processingTime = (endTime - startTime) / 1000; // Convert to seconds
 
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': process.env.API_KEY
+            },
+            body: JSON.stringify({
+                address: walletAddress,
+                days: ageInDays,
+                transactions: totalTransactions,
+                duration: processingTime.toFixed(2)
+            })
+        }
+        // Change this line to use a relative path
+        const storeRecord = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/store`, options)
+        console.log(storeRecord)
+
         return NextResponse.json({
             ageInDays,
             oldestTransactionDate: new Date(oldestTimestamp * 1000).toISOString(),
