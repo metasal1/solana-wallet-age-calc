@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import { PublicKey } from '@solana/web3.js'
+import Link from 'next/link'
 
 export default function Home() {
   const params = useParams()
@@ -11,10 +13,19 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [timer, setTimer] = useState(0)
 
+  const isValidSolanaAddress = (address: string): boolean => {
+    try {
+      new PublicKey(address);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
   useEffect(() => {
     if (params.wallet) {
-      setWalletAddress(params.wallet as string)
-      fetchWalletAge(params.wallet as string)
+      setWalletAddress(Array.isArray(params.wallet) ? params.wallet[0] : params.wallet)
+      fetchWalletAge(Array.isArray(params.wallet) ? params.wallet[0] : params.wallet)
     }
   }, [params.wallet])
 
@@ -61,7 +72,14 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!walletAddress) return
+    if (!walletAddress) {
+      setError('Please enter a wallet address.')
+      return
+    }
+    if (!isValidSolanaAddress(walletAddress)) {
+      setError('Please enter a valid Solana wallet address.')
+      return
+    }
     await fetchWalletAge(walletAddress)
   }
 
@@ -79,15 +97,32 @@ export default function Home() {
     });
   }
 
+  const shareToX = () => {
+    if (!result) return
+
+    const text = `My Solana Wallet is ${result.ageInDays} days old! Check your wallet age at`
+    const url = `https://solage.vercel.app`
+    const dev = ' By @metasal_'
+
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}${encodeURIComponent(dev)}`
+
+    window.open(twitterUrl, '_blank')
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-4xl font-bold mb-8">Solana Wallet Age Calculator</h1>
+      <Link href="/">
+        <h1 className="text-4xl font-bold mb-8">Solana Wallet Age Calculator</h1>
+      </Link>
       {!params.wallet && (
-        <form onSubmit={handleSubmit} className="w-full max-w-md">
+        <form onSubmit={handleSubmit} className="w-full max-w-full">
           <input
             type="text"
             value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
+            onChange={(e) => {
+              setWalletAddress(e.target.value)
+              setError(null) // Clear any previous error when input changes
+            }}
             placeholder="Enter Solana wallet address"
             className="w-full p-2 mb-4 border rounded"
             required
@@ -96,7 +131,7 @@ export default function Home() {
             <button
               type="submit"
               className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
-              disabled={loading}
+              disabled={loading || !walletAddress || !isValidSolanaAddress(walletAddress)}
             >
               {loading ? 'Calculating...' : 'Calculate Age'}
             </button>
@@ -109,6 +144,7 @@ export default function Home() {
               Reset
             </button>
           </div>
+          {error && <p className="text-red-500 mt-2">{error}</p>}
           <i className='text-gray-600 text-center'>Please be patient, it can take a while for OG wallets.</i>
         </form>
       )}
@@ -138,6 +174,12 @@ export default function Home() {
           <a className='text-blue-500' target="_blank" href={`https://solscan.io/tx/${result.oldestTransactionSignature}`}>View on Solscan</a>
           <p>Total transactions: {result.totalTransactions}</p>
           <p>Processing time: {result.processingTime} seconds</p>
+          <button
+            onClick={shareToX}
+            className="mt-4 p-2 bg-blue-400 text-white rounded hover:bg-blue-500"
+          >
+            Share to X
+          </button>
         </div>
       )}
       <footer className="text-xs p-5">Made by <a className="text-red-500" target="_blank" href={"https://www.metasal.xyz"}>@metasal</a></footer>
