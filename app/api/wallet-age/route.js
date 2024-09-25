@@ -2,6 +2,8 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { NextResponse } from 'next/server';
 import { performance } from 'perf_hooks';
 
+export const maxDuration = 300;
+
 export async function POST(request) {
     const startTime = performance.now();
     let { walletAddress } = await request.json();
