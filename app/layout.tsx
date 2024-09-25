@@ -37,13 +37,20 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const deployDateTime = process.env.NEXT_PUBLIC_DEPLOY_DATE || 'Unknown';
+
   return (
     <html lang="en">
       <Analytics />
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        {children}
+        <footer className="text-center py-4 text-xs text-gray-500">
+          Deployed on: {deployDateTime}
+        </footer>
+      </body>
     </html>
   );
 }

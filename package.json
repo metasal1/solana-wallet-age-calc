@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NEXT_PUBLIC_DEPLOY_DATE=$(date +'%Y-%m-%d %H:%M:%S') next build",
     "start": "next start",
     "lint": "next lint"
   },
