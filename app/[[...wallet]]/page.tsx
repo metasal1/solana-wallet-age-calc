@@ -65,6 +65,7 @@ export default function Home() {
       setResult(data)
     } catch (err) {
       setError('An error occurred while fetching the wallet age.')
+      console.error(err) // Log the error for debugging
     } finally {
       setLoading(false)
     }
@@ -89,12 +90,14 @@ export default function Home() {
     setError(null)
   }
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      alert('Copied to clipboard!');
-    }).catch(err => {
-      console.error('Failed to copy: ', err);
-    });
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      alert('Copied to clipboard!')
+    } catch (err) {
+      console.error('Failed to copy: ', err)
+      alert('Failed to copy to clipboard')
+    }
   }
 
   const shareToX = () => {
@@ -106,16 +109,16 @@ export default function Home() {
 
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}${encodeURIComponent(dev)}`
 
-    window.open(twitterUrl, '_blank')
+    window.open(twitterUrl, '_blank', 'noopener,noreferrer')
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 md:p-24">
       <Link href="/">
-        <h1 className="text-4xl font-bold mb-8">Solana Wallet Age Calculator</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 text-center">Solana Wallet Age Calculator</h1>
       </Link>
       {!params.wallet && (
-        <form onSubmit={handleSubmit} className="w-full max-w-full">
+        <form onSubmit={handleSubmit} className="w-full max-w-md">
           <input
             type="text"
             value={walletAddress}
@@ -124,13 +127,13 @@ export default function Home() {
               setError(null) // Clear any previous error when input changes
             }}
             placeholder="Enter Solana wallet address"
-            className="w-full p-2 mb-4 border rounded"
+            className="w-full p-2 mb-4 border rounded text-sm sm:text-base"
             required
           />
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <button
               type="submit"
-              className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
+              className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300 text-sm sm:text-base"
               disabled={loading || !walletAddress || !isValidSolanaAddress(walletAddress)}
             >
               {loading ? 'Calculating...' : 'Calculate Age'}
@@ -138,14 +141,14 @@ export default function Home() {
             <button
               type="button"
               onClick={handleReset}
-              className="flex-1 p-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              className="flex-1 p-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm sm:text-base"
               disabled={loading}
             >
               Reset
             </button>
           </div>
-          {error && <p className="text-red-500 mt-2">{error}</p>}
-          <i className='text-gray-600 text-center'>Please be patient, it can take a while for OG wallets.</i>
+          {error && <p className="text-red-500 mt-2 text-sm">{error}</p>}
+          <i className='text-gray-600 text-center text-sm block mt-2'>Please be patient, it can take a while for OG wallets.</i>
         </form>
       )}
       {loading && (
@@ -157,32 +160,41 @@ export default function Home() {
       )}
       {error && <p className="text-red-500 mt-4">{error}</p>}
       {result && (
-        <div className="mt-8">
-          <h2 className="text-2xl font-semibold mb-4">Results:</h2>
-          <p>Wallet age: {result.ageInDays} days</p>
-          <p>Oldest transaction date: {result.oldestTransactionDate}</p>
-          <p>
+        <div className="mt-8 w-full max-w-md">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4">Results:</h2>
+          <p className="text-sm sm:text-base">Wallet age: {result.ageInDays} days</p>
+          <p className="text-sm sm:text-base">Oldest transaction date: {result.oldestTransactionDate}</p>
+          <p className="text-sm sm:text-base break-words">
             Oldest transaction signature:
             <small
-              className="cursor-pointer text-blue-500 hover:text-blue-700"
+              className="cursor-pointer text-blue-500 hover:text-blue-700 ml-2"
               onClick={() => copyToClipboard(result.oldestTransactionSignature)}
               title="Click to copy"
             >
               {result.oldestTransactionSignature}
             </small>
           </p>
-          <a className='text-blue-500' target="_blank" href={`https://solscan.io/tx/${result.oldestTransactionSignature}`}>View on Solscan</a>
-          <p>Total transactions: {result.totalTransactions}</p>
-          <p>Processing time: {result.processingTime} seconds</p>
+          <a
+            className='text-blue-500 hover:underline text-sm sm:text-base'
+            target="_blank"
+            rel="noopener noreferrer"
+            href={`https://solscan.io/tx/${result.oldestTransactionSignature}`}
+          >
+            View on Solscan
+          </a>
+          <p className="text-sm sm:text-base">Total transactions: {result.totalTransactions}</p>
+          <p className="text-sm sm:text-base">Processing time: {result.processingTime} seconds</p>
           <button
             onClick={shareToX}
-            className="mt-4 p-2 bg-blue-400 text-white rounded hover:bg-blue-500"
+            className="mt-4 p-2 bg-blue-400 text-white rounded hover:bg-blue-500 text-sm sm:text-base"
           >
             Share to X
           </button>
         </div>
       )}
-      <footer className="text-xs p-5">Made by <a className="text-red-500" target="_blank" href={"https://www.metasal.xyz"}>@metasal</a></footer>
+      <footer className="text-xs p-5 text-center">
+        Made by <a className="text-red-500 hover:underline" target="_blank" rel="noopener noreferrer" href="https://www.metasal.xyz">@metasal</a>
+      </footer>
 
     </main>
   )
