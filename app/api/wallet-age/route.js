@@ -4,7 +4,14 @@ import { performance } from 'perf_hooks';
 
 export async function POST(request) {
     const startTime = performance.now();
-    const { walletAddress } = await request.json();
+    let { walletAddress } = await request.json();
+
+    // Sanitize and remove whitespace
+    walletAddress = walletAddress.trim().replace(/\s+/g, '');
+
+    if (!walletAddress) {
+        return NextResponse.json({ error: 'Wallet address is required.' }, { status: 400 });
+    }
 
     const connection = new Connection(process.env.RPCM || '', 'confirmed');
 
@@ -59,6 +66,9 @@ export async function POST(request) {
 
     } catch (error) {
         console.error('Error:', error);
+        if (error instanceof Error && error.message.includes('Invalid public key input')) {
+            return NextResponse.json({ error: 'Invalid wallet address format.' }, { status: 400 });
+        }
         return NextResponse.json({ error: 'An error occurred while processing the request.' }, { status: 500 });
     }
 }
