@@ -12,6 +12,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [timer, setTimer] = useState(0)
+  const [numerophileNumber, setNumerophileNumber] = useState(0)
 
   const isValidSolanaAddress = (address: string): boolean => {
     try {
@@ -31,6 +32,7 @@ export default function Home() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
+    getTotalRecords()
     if (loading) {
       interval = setInterval(() => {
         setTimer((prevTimer) => prevTimer + 1)
@@ -90,6 +92,11 @@ export default function Home() {
     setError(null)
   }
 
+  const getTotalRecords = async () => {
+    const totalRecords = await fetch('/api/total')
+    const data = await totalRecords.json()
+    setNumerophileNumber(data.total)
+  }
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text)
@@ -117,6 +124,7 @@ export default function Home() {
       <Link href="/">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 text-center">Solana Wallet Age Calculator</h1>
       </Link>
+      {numerophileNumber > 0 && <div className='text-sm text-gray-500 p-2 italic'>You are Numerophile #{numerophileNumber + 1}</div>}
       {!params.wallet && (
         <form onSubmit={handleSubmit} className="w-full max-w-md">
           <input
