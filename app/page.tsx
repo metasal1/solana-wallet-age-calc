@@ -79,7 +79,7 @@ export default function Home() {
             Reset
           </button>
         </div>
-        <i className='text-gray-600 text-center'>Please be patience, it can take a while for OG wallets.</i>
+        <i className='text-gray-600 text-center'>Please be patient, it can take a while for OG wallets.</i>
       </form>
       {error && <p className="text-red-500 mt-4">{error}</p>}
       {result && (
@@ -99,6 +99,7 @@ export default function Home() {
           </p>
           <a className='text-blue-500' target="_blank" href={`https://solscan.io/tx/${result.oldestTransactionSignature}`}>View on Solscan</a>
           <p>Total transactions: {result.totalTransactions}</p>
+          <p>Processing time: {result.processingTime} seconds</p>
         </div>
       )}
       <footer className="text-xs p-5">Made by <a className="text-red-500" target="_blank" href={"https://www.metasal.xyz"}>@metasal</a></footer>

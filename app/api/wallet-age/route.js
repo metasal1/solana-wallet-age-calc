@@ -1,7 +1,9 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { NextResponse } from 'next/server';
+import { performance } from 'perf_hooks';
 
 export async function POST(request) {
+    const startTime = performance.now();
     const { walletAddress } = await request.json();
 
     const connection = new Connection(process.env.RPCM || '', 'confirmed');
@@ -44,11 +46,15 @@ export async function POST(request) {
         const ageInSeconds = currentTime - oldestTimestamp;
         const ageInDays = Math.floor(ageInSeconds / (24 * 60 * 60));
 
+        const endTime = performance.now();
+        const processingTime = (endTime - startTime) / 1000; // Convert to seconds
+
         return NextResponse.json({
             ageInDays,
             oldestTransactionDate: new Date(oldestTimestamp * 1000).toISOString(),
             oldestTransactionSignature: lastSignature,
-            totalTransactions
+            totalTransactions,
+            processingTime: processingTime.toFixed(2) // Round to 2 decimal places
         });
 
     } catch (error) {
