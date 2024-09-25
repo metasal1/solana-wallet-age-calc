@@ -42,6 +42,14 @@ export default function Home() {
     setError(null)
   }
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Copied to clipboard!');
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+    });
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <h1 className="text-4xl font-bold mb-8">Solana Wallet Age Calculator</h1>
@@ -79,6 +87,17 @@ export default function Home() {
           <h2 className="text-2xl font-semibold mb-4">Results:</h2>
           <p>Wallet age: {result.ageInDays} days</p>
           <p>Oldest transaction date: {result.oldestTransactionDate}</p>
+          <p>
+            Oldest transaction signature:
+            <small
+              className="cursor-pointer text-blue-500 hover:text-blue-700"
+              onClick={() => copyToClipboard(result.oldestTransactionSignature)}
+              title="Click to copy"
+            >
+              {result.oldestTransactionSignature}
+            </small>
+          </p>
+          <a className='text-blue-500' target="_blank" href={`https://solscan.io/tx/${result.oldestTransactionSignature}`}>View on Solscan</a>
           <p>Total transactions: {result.totalTransactions}</p>
         </div>
       )}

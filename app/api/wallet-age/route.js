@@ -47,6 +47,7 @@ export async function POST(request) {
         return NextResponse.json({
             ageInDays,
             oldestTransactionDate: new Date(oldestTimestamp * 1000).toISOString(),
+            oldestTransactionSignature: lastSignature,
             totalTransactions
         });
 

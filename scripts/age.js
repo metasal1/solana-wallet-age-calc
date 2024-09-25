@@ -1,7 +1,7 @@
 const { Connection, PublicKey } = require('@solana/web3.js');
 
 async function calculateWalletAge(walletAddress) {
-    const connection = new Connection('https://mainnet.helius-rpc.com/?api-key=ff0d3523-6397-47bf-bf5d-acb7d765d5ff', 'confirmed');
+    const connection = new Connection(process.env.RPCM, 'confirmed');
 
     try {
         const pubKey = new PublicKey(walletAddress);
