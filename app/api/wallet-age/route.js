@@ -6,6 +6,7 @@ export const maxDuration = 300;
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
+const API_TIMEOUT = 280000; // 280 seconds (a bit less than maxDuration)
 
 async function fetchWithRetry(connection, pubKey, options, retries = 0) {
     try {
@@ -45,31 +46,49 @@ export async function POST(request) {
         let oldestTimestamp = null;
         let totalTransactions = 0;
         let lastSignature = null;
+        let isComplete = false;
 
-        while (true) {
-            const options = {
-                limit: 1000,
-                before: lastSignature
-            };
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('API Timeout')), API_TIMEOUT);
+        });
 
-            const transactions = await fetchWithRetry(connection, pubKey, options);
+        const fetchDataPromise = (async () => {
+            while (true) {
+                const options = {
+                    limit: 1000,
+                    before: lastSignature
+                };
 
-            if (transactions.length === 0) {
-                console.log('No more transactions found');
-                break;
+                const transactions = await fetchWithRetry(connection, pubKey, options);
+
+                if (transactions.length === 0) {
+                    console.log('No more transactions found');
+                    isComplete = true;
+                    break;
+                }
+
+                totalTransactions += transactions.length;
+
+                const batchOldestTimestamp = transactions[transactions.length - 1].blockTime;
+                if (oldestTimestamp === null || batchOldestTimestamp < oldestTimestamp) {
+                    oldestTimestamp = batchOldestTimestamp;
+                }
+
+                lastSignature = transactions[transactions.length - 1].signature;
+                console.log(`Total transactions so far: ${totalTransactions}, Oldest timestamp: ${new Date(oldestTimestamp * 1000).toISOString()}`);
+
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
+        })();
 
-            totalTransactions += transactions.length;
-
-            const batchOldestTimestamp = transactions[transactions.length - 1].blockTime;
-            if (oldestTimestamp === null || batchOldestTimestamp < oldestTimestamp) {
-                oldestTimestamp = batchOldestTimestamp;
+        try {
+            await Promise.race([fetchDataPromise, timeoutPromise]);
+        } catch (error) {
+            if (error.message === 'API Timeout') {
+                console.log('API Timeout reached. Returning partial results.');
+            } else {
+                throw error;
             }
-
-            lastSignature = transactions[transactions.length - 1].signature;
-            console.log(`Total transactions so far: ${totalTransactions}, Oldest timestamp: ${new Date(oldestTimestamp * 1000).toISOString()}`);
-
-            await new Promise(resolve => setTimeout(resolve, 100));
         }
 
         if (oldestTimestamp === null) {
@@ -84,7 +103,7 @@ export async function POST(request) {
         const endTime = performance.now();
         const processingTime = (endTime - startTime) / 1000; // Convert to seconds
 
-        console.log(`Processing completed. Age: ${ageInDays} days, Total transactions: ${totalTransactions}, Processing time: ${processingTime.toFixed(2)} seconds`);
+        console.log(`Processing ${isComplete ? 'completed' : 'partial'}. Age: ${ageInDays} days, Total transactions: ${totalTransactions}, Processing time: ${processingTime.toFixed(2)} seconds`);
 
         const options = {
             method: 'POST',
@@ -96,7 +115,8 @@ export async function POST(request) {
                 address: walletAddress,
                 days: ageInDays,
                 transactions: totalTransactions,
-                duration: processingTime.toFixed(2)
+                duration: processingTime.toFixed(2),
+                isComplete: isComplete
             })
         }
         console.log('Storing record...');
@@ -113,7 +133,8 @@ export async function POST(request) {
             oldestTransactionDate: new Date(oldestTimestamp * 1000).toISOString(),
             oldestTransactionSignature: lastSignature,
             totalTransactions,
-            processingTime: processingTime.toFixed(2) // Round to 2 decimal places
+            processingTime: processingTime.toFixed(2), // Round to 2 decimal places
+            isComplete: isComplete
         };
         console.log('Sending response:', JSON.stringify(response));
         return NextResponse.json(response);
