@@ -192,6 +192,7 @@ export default function Home() {
           </a>
           <p className="text-sm sm:text-base">Total transactions: {result.totalTransactions}</p>
           <p className="text-sm sm:text-base">Processing time: {result.processingTime} seconds</p>
+          <div className="text-xs text-red-500 mt-4 italic"><strong>Disclaimer:</strong> Please run the process a couple of times just in case.</div>
           <button
             onClick={shareToX}
             className="mt-4 p-2 bg-blue-400 text-white rounded hover:bg-blue-500 text-sm sm:text-base"
