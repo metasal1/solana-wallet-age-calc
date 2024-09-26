@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { PublicKey } from '@solana/web3.js'
 import Link from 'next/link'
+import ReactConfetti from 'react-confetti'
 
 export default function Home() {
   const params = useParams()
@@ -13,6 +14,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [timer, setTimer] = useState(0)
   const [numerophileNumber, setNumerophileNumber] = useState(0)
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [confettiEnded, setConfettiEnded] = useState(false)
 
   const isValidSolanaAddress = (address: string): boolean => {
     try {
@@ -65,6 +68,12 @@ export default function Home() {
 
       const data = await response.json()
       setResult(data)
+      setShowConfetti(true)
+      setConfettiEnded(false)
+      setTimeout(() => {
+        setShowConfetti(false)
+        setConfettiEnded(true)
+      }, 5000) // Hide confetti after 5 seconds
     } catch (err) {
       setError('An error occurred while fetching the wallet age.')
       console.error(err) // Log the error for debugging
@@ -119,8 +128,18 @@ export default function Home() {
     window.open(twitterUrl, '_blank', 'noopener,noreferrer')
   }
 
+  const replayConfetti = () => {
+    setShowConfetti(true)
+    setConfettiEnded(false)
+    setTimeout(() => {
+      setShowConfetti(false)
+      setConfettiEnded(true)
+    }, 5000)
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 md:p-24">
+      {showConfetti && <ReactConfetti />}
       <Link href="/">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 text-center">Solana Wallet Age Calculator</h1>
       </Link>
@@ -199,6 +218,14 @@ export default function Home() {
           >
             Share to X
           </button>
+          {confettiEnded && (
+            <button
+              onClick={replayConfetti}
+              className="mt-4 ml-2 p-2 bg-green-400 text-white rounded hover:bg-green-500 text-sm sm:text-base"
+            >
+              Replay Confetti
+            </button>
+          )}
         </div>
       )}
       <footer className="text-xs p-5 text-center">

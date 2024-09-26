@@ -48,7 +48,7 @@ export default function RootLayout({
       <body className={inter.className}>
         {children}
         <footer className="text-center py-4 text-xs text-gray-500">
-          Deployed on: {deployDateTime}
+          Deployed on: {deployDateTime} UTC
         </footer>
       </body>
     </html>
