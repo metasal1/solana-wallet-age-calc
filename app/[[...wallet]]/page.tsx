@@ -16,6 +16,8 @@ export default function Home() {
   const [numerophileNumber, setNumerophileNumber] = useState(0)
   const [showConfetti, setShowConfetti] = useState(false)
   const [confettiEnded, setConfettiEnded] = useState(false)
+  const [username, setUsername] = useState('')
+  const [phantomProfile, setPhantomProfile] = useState<any>(null)
 
   const isValidSolanaAddress = (address: string): boolean => {
     try {
@@ -82,23 +84,61 @@ export default function Home() {
     }
   }
 
+  const fetchPhantomProfile = async (username: string) => {
+    setLoading(true)
+    setError(null)
+    setPhantomProfile(null)
+
+    try {
+      const response = await fetch('/api/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch Phantom profile')
+      }
+
+      const data = await response.json()
+      setPhantomProfile(data)
+      if (data.addresses && data.addresses['solana:101']) {
+        setWalletAddress(data.addresses['solana:101'])
+        await fetchWalletAge(data.addresses['solana:101'])
+      } else {
+        setError('No Solana address found for this username')
+      }
+    } catch (err) {
+      setError('An error occurred while fetching the Phantom profile.')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!walletAddress) {
-      setError('Please enter a wallet address.')
-      return
+    if (username) {
+      await fetchPhantomProfile(username)
+    } else if (walletAddress) {
+      if (!isValidSolanaAddress(walletAddress)) {
+        setError('Please enter a valid Solana wallet address.')
+        return
+      }
+      await fetchWalletAge(walletAddress)
+    } else {
+      setError('Please enter a username or wallet address.')
     }
-    if (!isValidSolanaAddress(walletAddress)) {
-      setError('Please enter a valid Solana wallet address.')
-      return
-    }
-    await fetchWalletAge(walletAddress)
   }
 
   const handleReset = () => {
     setWalletAddress('')
     setResult(null)
     setError(null)
+    setUsername('')
+    setPhantomProfile(null)
   }
 
   const getTotalRecords = async () => {
@@ -137,6 +177,14 @@ export default function Home() {
     }, 5000)
   }
 
+  const renderIcon = (icon: string) => {
+    if (icon.startsWith('http')) {
+      return <img src={icon} alt="Profile Icon" className="w-8 h-8 rounded-full" />;
+    } else {
+      return <span className="text-2xl">{icon}</span>;
+    }
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 md:p-24">
       {showConfetti && <ReactConfetti />}
@@ -148,20 +196,31 @@ export default function Home() {
         <form onSubmit={handleSubmit} className="w-full max-w-md">
           <input
             type="text"
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value)
+              setWalletAddress('')
+              setError(null)
+            }}
+            placeholder="Enter Phantom username"
+            className="w-full p-2 mb-4 border rounded text-sm sm:text-base"
+          />
+          <input
+            type="text"
             value={walletAddress}
             onChange={(e) => {
               setWalletAddress(e.target.value)
-              setError(null) // Clear any previous error when input changes
+              setUsername('')
+              setError(null)
             }}
-            placeholder="Enter Solana wallet address"
+            placeholder="Or enter Solana wallet address"
             className="w-full p-2 mb-4 border rounded text-sm sm:text-base"
-            required
           />
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <button
               type="submit"
               className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300 text-sm sm:text-base"
-              disabled={loading || !walletAddress || !isValidSolanaAddress(walletAddress)}
+              disabled={loading || (!username && !walletAddress)}
             >
               {loading ? 'Calculating...' : 'Calculate Age'}
             </button>
@@ -226,6 +285,16 @@ export default function Home() {
               Replay Confetti
             </button>
           )}
+        </div>
+      )}
+      {phantomProfile && (
+        <div className="mt-8 w-full max-w-md">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4">Phantom Profile:</h2>
+          <div className="flex items-center mb-2">
+            {renderIcon(phantomProfile.icon)}
+            <p className="text-sm sm:text-base ml-2">Username: {phantomProfile.username}</p>
+          </div>
+          <p className="text-sm sm:text-base">ID: {phantomProfile.id}</p>
         </div>
       )}
       <footer className="text-xs p-5 text-center">
