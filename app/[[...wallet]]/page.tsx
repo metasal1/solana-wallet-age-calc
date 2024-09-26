@@ -177,7 +177,10 @@ export default function Home() {
     }, 5000)
   }
 
-  const renderIcon = (icon: string) => {
+  const renderIcon = (icon: string | undefined) => {
+    if (!icon) {
+      return <span className="text-2xl">🔮</span>; // Default icon
+    }
     if (icon.startsWith('http')) {
       return <img src={icon} alt="Profile Icon" className="w-8 h-8 rounded-full" />;
     } else {
