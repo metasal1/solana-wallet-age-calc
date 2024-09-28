@@ -15,6 +15,7 @@ const headers = createActionHeaders({
 
 export const GET = async (req: Request) => {
     const payload: ActionGetResponse = {
+        type: "action",
         title: "Solana Wallet Age Calculator",
         icon: 'https://solage.vercel.app/api/image',
         description: "Calculate your Solana Wallet age",
@@ -25,4 +26,7 @@ export const GET = async (req: Request) => {
         headers,
     });
 }
-export const OPTIONS = GET;
+
+export const OPTIONS = async () => {
+    return new Response(null, { headers });
+};
