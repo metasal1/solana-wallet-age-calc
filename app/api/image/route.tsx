@@ -11,9 +11,9 @@ export async function GET(req: NextRequest) {
         // const title = searchParams.get('title') ?? 'Default Title'
         const days = searchParams.get('days') ?? null;
         if (days) {
-            var title = `Your Solana Wallet is \n 🎂 ${days} days old!`
+            var title = `Your Solana Wallet is \n ${days} days old!`
         } else {
-            var title = `Calcuate your Solana Wallet age at 🎂 https://solage.vercel.app 🎂 `
+            var title = `Solana Wallet Age Calculator `
         }
         return new ImageResponse(
             (
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
                 >
                     <div
                         style={{
-                            fontSize: 60,
+                            fontSize: "5em",
                             fontStyle: 'normal',
                             letterSpacing: '-0.025em',
                             color: 'white',
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
                         }}
                     >
                         {title}
-                    </div>
+                    </div><div style={{ fontSize: "2em", color: "white", padding: "50px" }}> 🎂 https://solage.vercel.app 🎂</div>
                 </div>
             ),
             {
