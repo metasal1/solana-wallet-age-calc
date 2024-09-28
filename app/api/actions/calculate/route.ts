@@ -15,6 +15,8 @@ import {
     TransactionInstruction,
 } from '@solana/web3.js';
 
+export const maxDuration = 300;
+
 const headers = createActionHeaders({
     chainId: "mainnet", // or chainId: "devnet"
     actionVersion: "2.2.1", // the desired spec version
