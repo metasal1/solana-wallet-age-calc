@@ -1,13 +1,11 @@
 import {
     ActionPostResponse,
-    createActionHeaders,
     createPostResponse,
+    MEMO_PROGRAM_ID,
     ActionGetResponse,
     ActionPostRequest,
-    ACTIONS_CORS_HEADERS,
-    ActionsJson
-} from "@solana/actions";
-
+    createActionHeaders,
+} from '@solana/actions';
 import {
     clusterApiUrl,
     ComputeBudgetProgram,
@@ -17,25 +15,26 @@ import {
     TransactionInstruction,
 } from '@solana/web3.js';
 
+
 const headers = createActionHeaders({
     chainId: "mainnet", // or chainId: "devnet"
     actionVersion: "2.2.1", // the desired spec version
 });
-
 export const GET = async (req: Request) => {
     const payload: ActionGetResponse = {
-        type: "action",
-        title: "Solana Wallet Age Calculator",
+        title: 'Solage Wallet Age Calculator',
         icon: 'https://solage.vercel.app/api/image',
-        description: "Calculate your Solana Wallet age",
-        label: "Calculate Age",
+        description: 'Calculate the age of your wallet',
+        label: 'Calculate Wallet Age',
     };
 
     return Response.json(payload, {
         headers,
     });
-}
+};
 
+// DO NOT FORGET TO INCLUDE THE `OPTIONS` HTTP METHOD
+// THIS WILL ENSURE CORS WORKS FOR BLINKS
 export const OPTIONS = async () => {
     return new Response(null, { headers });
 };
@@ -54,12 +53,16 @@ export const POST = async (req: Request) => {
             });
         }
 
+        const connection = new Connection(
+            process.env.SOLANA_RPCM! || clusterApiUrl('mainnet-beta'),
+        );
+
         const transaction = new Transaction()
 
         const payload: ActionPostResponse = await createPostResponse({
             fields: {
                 transaction,
-                message: 'Your wallet age is...',
+                message: 'Post this memo on-chain',
                 type: 'transaction',
             },
             // no additional signers are required for this transaction
