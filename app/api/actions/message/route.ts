@@ -26,20 +26,3 @@ export const GET = async (req: Request) => {
     });
 }
 export const OPTIONS = GET;
-
-export const POST = async (req: Request) => {
-    const body: ActionPostRequest = await req.json();
-
-    // insert transaction logic here    
-
-    const payload: ActionPostResponse = await createPostResponse({
-        fields: {
-            transaction,
-            message: "Optional message to include with transaction",
-        },
-    });
-
-    return Response.json(payload, {
-        headers,
-    });
-};
