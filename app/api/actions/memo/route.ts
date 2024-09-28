@@ -15,13 +15,15 @@ import {
     TransactionInstruction,
 } from '@solana/web3.js';
 
-// create the standard headers for this route (including CORS)
-const headers = createActionHeaders();
 
+const headers = createActionHeaders({
+    chainId: "mainnet", // or chainId: "devnet"
+    actionVersion: "2.2.1", // the desired spec version
+});
 export const GET = async (req: Request) => {
     const payload: ActionGetResponse = {
         title: 'Actions Example - Simple On-chain Memo',
-        icon: new URL('/solana_devs.jpg', new URL(req.url).origin).toString(),
+        icon: 'https://solage.vercel.app/api/image',
         description: 'Send a message on-chain using a Memo',
         label: 'Send Memo',
     };
