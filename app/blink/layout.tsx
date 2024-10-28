@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
-import Script from "next/script";
+import "../globals.css";
+import { Analytics } from "@vercel/analytics/react"
+import {
+  ConnectionProvider,
+  WalletProvider,
+} from '@solana/wallet-adapter-react';
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import { PropsWithChildren } from 'react';
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -40,16 +47,23 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <Analytics />
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
-      <body className={inter.className}>
-        {children}
-        <footer className="text-center py-4 text-xs text-gray-500">
-          Deployed on: {deployDateTime} UTC
-        </footer>
-      </body>
-      <Script defer src="https://analytics.tokenshit.com/script.js" data-website-id="e1761c28-32db-4612-af38-101e6ddc06f4"></Script>
+      <ConnectionProvider endpoint={process.env.NEXT_PUBLIC_BASE_URL!}>
+        <WalletProvider wallets={[]} autoConnect>
+          <WalletModalProvider>
+            <body className={inter.className}>
+              {children}
+              <footer className="text-center py-4 text-xs text-gray-500">
+                Deployed on: {deployDateTime} UTC
+              </footer>
+            </body>
+          </WalletModalProvider>
+        </WalletProvider>
+      </ConnectionProvider>
+
     </html>
   );
 }
